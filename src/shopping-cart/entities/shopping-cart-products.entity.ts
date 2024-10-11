@@ -3,7 +3,7 @@ import { ShoppingCartEntity } from './shopping-cart.entity';
 import { ProductsEntity } from '../../products/entities/products.entity';
 
 @Entity('shopping_cart_products')
-export class Shopping_cart_productsEntity {
+export class ShoppingCartProductsEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
   @Column()

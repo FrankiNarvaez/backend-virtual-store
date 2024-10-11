@@ -5,7 +5,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Shopping_cart_productsEntity } from './shopping_cart_products.entity';
+import { ShoppingCartProductsEntity } from './shopping-cart-products.entity';
 import { UsersEntity } from '../../users/entities/users.entity';
 
 @Entity('shopping_cart')
@@ -16,8 +16,8 @@ export class ShoppingCartEntity {
   @JoinColumn()
   user: UsersEntity;
   @OneToMany(
-    () => Shopping_cart_productsEntity,
+    () => ShoppingCartProductsEntity,
     (product) => product.shopping_cart,
   )
-  products_includes: Shopping_cart_productsEntity[];
+  products_includes: ShoppingCartProductsEntity[];
 }
