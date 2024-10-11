@@ -19,14 +19,16 @@ export class UsersController {
     return await this.usersService.createUser(body);
   }
 
-  @Get('all')
+  @Get('get-users')
   public async getAllUsers() {
     return await this.usersService.getUsers();
   }
+
   @Get(':id')
   public async getUserById(@Param('id') id: string) {
     return await this.usersService.getUserById(id);
   }
+
   @Patch(':id')
   public async updateUser(
     @Param('id') id: string,
@@ -34,6 +36,7 @@ export class UsersController {
   ) {
     return await this.usersService.updateUser(id, body);
   }
+
   @Delete(':id')
   public async deleteUser(@Param('id') id: string) {
     return await this.usersService.deleteUser(id);
