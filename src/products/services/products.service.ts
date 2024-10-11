@@ -4,7 +4,7 @@ import { ProductsEntity } from '../entities/products.entity';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { ProductDto } from '../dto/product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
-import { ErrorManager } from "../../config/error.manager";
+import { ErrorManager } from '../../config/error.manager';
 
 @Injectable()
 export class ProductsService {
