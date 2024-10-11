@@ -5,7 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Order_productsEntity } from './order_products.entity';
+import { OrderProductsEntity } from './order-products.entity';
 
 @Entity('orders')
 export class OrdersEntity {
@@ -18,6 +18,6 @@ export class OrdersEntity {
     name: 'bought_at',
   })
   bought_at: Date;
-  @OneToMany(() => Order_productsEntity, (order) => order.order)
-  products_includes: Order_productsEntity[];
+  @OneToMany(() => OrderProductsEntity, (order) => order.order)
+  products_includes: OrderProductsEntity[];
 }
