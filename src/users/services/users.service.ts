@@ -6,7 +6,6 @@ import { UserDto } from '../dto/user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { ShoppingCartEntity } from '../../shopping-cart/entities/shopping-cart.entity';
 import { ErrorManager } from '../../config/error.manager';
-import { LoginUserDto } from '../dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
 import * as process from 'node:process';
 
@@ -67,6 +66,24 @@ export class UsersService {
     }
   }
 
+  public async getUserByEmail(email: string): Promise<UsersEntity> {
+    try {
+      const user: UsersEntity = await this.usersRepository
+        .createQueryBuilder('users')
+        .where({ email })
+        .getOne();
+      if (!user) {
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'User not found',
+        });
+      }
+      return user;
+    } catch (error) {
+      throw ErrorManager.createError(error.message);
+    }
+  }
+
   public async updateUser(
     id: string,
     body: UpdateUserDto,
@@ -89,25 +106,6 @@ export class UsersService {
     try {
       const user: DeleteResult = await this.usersRepository.delete(id);
       if (user.affected === 0) {
-        throw new ErrorManager({
-          type: 'BAD_REQUEST',
-          message: 'User not found',
-        });
-      }
-      return user;
-    } catch (error) {
-      throw ErrorManager.createError(error.message);
-    }
-  }
-
-  public async loginUser(credentials: LoginUserDto) {
-    try {
-      const { email, password } = credentials;
-      const user: UsersEntity = await this.usersRepository
-        .createQueryBuilder('users')
-        .where({ email, password })
-        .getOne();
-      if (!user) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
           message: 'User not found',
