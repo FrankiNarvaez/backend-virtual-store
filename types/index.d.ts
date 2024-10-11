@@ -8,5 +8,7 @@ declare namespace NodeJS {
     URL_DB: string;
     PORT: number;
     HASH_SALT: number;
+    JWT_SECRET: string;
+    JWT_EXPIRES: string;
   }
 }
