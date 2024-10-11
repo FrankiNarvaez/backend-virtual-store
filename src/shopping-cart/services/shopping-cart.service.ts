@@ -23,8 +23,9 @@ export class ShoppingCartService {
     try {
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
-        relations: ['products_includes'],
+        relations: ['products_includes', 'products_includes.product'],
       });
+      console.log(cart);
 
       if (!cart) {
         throw new ErrorManager({
@@ -44,9 +45,11 @@ export class ShoppingCartService {
         });
       }
 
-      const productInCart = await this.shoppingCartProductsRepository.findOne({
-        where: { product: { id: body.product_id } },
-      });
+      const productInCart = cart.products_includes.find(
+        (product) => product.product.id === body.product_id,
+      );
+
+      console.log(productInCart);
 
       if (productInCart) {
         productInCart.quantity += body.quantity;
@@ -89,7 +92,7 @@ export class ShoppingCartService {
     try {
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
-        relations: ['products_includes'],
+        relations: ['products_includes', 'products_includes.product'],
       });
 
       if (!cart) {
@@ -99,9 +102,9 @@ export class ShoppingCartService {
         });
       }
 
-      const productInCart = await this.shoppingCartProductsRepository.findOne({
-        where: { product: { id: product_id } },
-      });
+      const productInCart = cart.products_includes.find(
+        (product) => product.product.id === product_id,
+      );
 
       if (!productInCart) {
         throw new ErrorManager({
@@ -124,7 +127,7 @@ export class ShoppingCartService {
     try {
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
-        relations: ['products_includes'],
+        relations: ['products_includes', 'products_includes.product'],
       });
 
       if (!cart) {
@@ -134,9 +137,9 @@ export class ShoppingCartService {
         });
       }
 
-      const productInCart = await this.shoppingCartProductsRepository.findOne({
-        where: { product: { id: product_id } },
-      });
+      const productInCart = cart.products_includes.find(
+        (product) => product.product.id === body.product_id,
+      );
 
       if (!productInCart) {
         throw new ErrorManager({
