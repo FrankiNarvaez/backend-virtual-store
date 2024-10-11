@@ -6,6 +6,7 @@ import { ShoppingCartProductsEntity } from '../entities/shopping-cart-products.e
 import { ProductsEntity } from '../../products/entities/products.entity';
 import { ShoppingCartDto } from '../dto/shopping-cart.dto';
 import { ErrorManager } from '../../config/error.manager';
+import { UpdateShoppingCartDto } from '../dto/update-shopping-cart.dto';
 
 @Injectable()
 export class ShoppingCartService {
@@ -17,30 +18,36 @@ export class ShoppingCartService {
     @InjectRepository(ProductsEntity)
     private readonly productsRepository: Repository<ProductsEntity>,
   ) {}
+
   public async addProdcutToCart(user_id: string, body: ShoppingCartDto) {
     try {
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
         relations: ['products_includes'],
       });
+
       if (!cart) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
           message: 'Cart not found',
         });
       }
+
       const product = await this.productsRepository.findOne({
         where: { id: body.product_id },
       });
+
       if (!product) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
           message: 'Product not found',
         });
       }
-      const productInCart = cart.products_includes.find(
-        (product) => product.product.id === body.product_id,
-      );
+
+      const productInCart = await this.shoppingCartProductsRepository.findOne({
+        where: { product: { id: body.product_id } },
+      });
+
       if (productInCart) {
         productInCart.quantity += body.quantity;
         await this.shoppingCartProductsRepository.save(productInCart);
@@ -52,16 +59,20 @@ export class ShoppingCartService {
         });
         await this.shoppingCartProductsRepository.save(newProduct);
       }
+
+      return cart;
     } catch (error) {
       throw ErrorManager.createError(error.message);
     }
   }
+
   public async getCart(user_id: string) {
     try {
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
         relations: ['products_includes', 'products_includes.product'],
       });
+
       if (!cart) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
@@ -73,59 +84,69 @@ export class ShoppingCartService {
       throw ErrorManager.createError(error.message);
     }
   }
+
   public async removeProductFromCart(user_id: string, product_id: string) {
     try {
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
         relations: ['products_includes'],
       });
+
       if (!cart) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
           message: 'Cart not found',
         });
       }
-      const productInCart = cart.products_includes.find(
-        (product) => product.product.id === product_id,
-      );
+
+      const productInCart = await this.shoppingCartProductsRepository.findOne({
+        where: { product: { id: product_id } },
+      });
+
       if (!productInCart) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
           message: 'Product not found in cart',
         });
       }
-      await this.shoppingCartProductsRepository.remove(productInCart);
+
+      return await this.shoppingCartProductsRepository.remove(productInCart);
     } catch (error) {
       throw ErrorManager.createError(error.message);
     }
   }
+
   public async updateProductInCart(
     user_id: string,
     product_id: string,
-    body: ShoppingCartDto,
+    body: UpdateShoppingCartDto,
   ) {
     try {
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
         relations: ['products_includes'],
       });
+
       if (!cart) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
           message: 'Cart not found',
         });
       }
-      const productInCart = cart.products_includes.find(
-        (product) => product.product.id === product_id,
-      );
+
+      const productInCart = await this.shoppingCartProductsRepository.findOne({
+        where: { product: { id: product_id } },
+      });
+
       if (!productInCart) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
           message: 'Product not found in cart',
         });
       }
+
       productInCart.quantity = body.quantity;
-      await this.shoppingCartProductsRepository.save(productInCart);
+      return await this.shoppingCartProductsRepository.save(productInCart);
     } catch (error) {
       throw ErrorManager.createError(error.message);
     }
