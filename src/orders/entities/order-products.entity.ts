@@ -6,8 +6,14 @@ import { OrdersEntity } from './orders.entity';
 export class OrderProductsEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-  @ManyToOne(() => OrdersEntity, (order) => order.products_includes)
+  @ManyToOne(() => OrdersEntity, (order) => order.products_includes, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   order: OrdersEntity;
-  @ManyToOne(() => ProductsEntity, (product) => product.order_includes)
+  @ManyToOne(() => ProductsEntity, (product) => product.order_includes, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   product: ProductsEntity;
 }

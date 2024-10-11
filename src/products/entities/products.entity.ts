@@ -16,8 +16,14 @@ export class ProductsEntity {
   stock: number;
   @Column()
   image: string;
-  @OneToMany(() => ShoppingCartProductsEntity, (product) => product.product)
+  @OneToMany(() => ShoppingCartProductsEntity, (product) => product.product, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   shopping_cart_includes: ShoppingCartProductsEntity[];
-  @OneToMany(() => OrderProductsEntity, (product) => product.product)
+  @OneToMany(() => OrderProductsEntity, (product) => product.product, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   order_includes: OrderProductsEntity[];
 }

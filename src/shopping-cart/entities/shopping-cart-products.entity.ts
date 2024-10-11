@@ -11,8 +11,13 @@ export class ShoppingCartProductsEntity {
   @ManyToOne(
     () => ShoppingCartEntity,
     (shopping_cart) => shopping_cart.products_includes,
+    { onDelete: 'CASCADE', onUpdate: 'CASCADE' },
   )
   shopping_cart: ShoppingCartEntity;
-  @ManyToOne(() => ProductsEntity, (product) => product.shopping_cart_includes)
+  @ManyToOne(
+    () => ProductsEntity,
+    (product) => product.shopping_cart_includes,
+    { onDelete: 'CASCADE', onUpdate: 'CASCADE' },
+  )
   product: ProductsEntity;
 }

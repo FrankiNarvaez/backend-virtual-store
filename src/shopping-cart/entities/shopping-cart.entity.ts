@@ -12,12 +12,13 @@ import { UsersEntity } from '../../users/entities/users.entity';
 export class ShoppingCartEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-  @OneToOne(() => UsersEntity)
+  @OneToOne(() => UsersEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn()
   user: UsersEntity;
   @OneToMany(
     () => ShoppingCartProductsEntity,
     (product) => product.shopping_cart,
+    { cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' },
   )
   products_includes: ShoppingCartProductsEntity[];
 }
