@@ -5,7 +5,3 @@ export interface PayloadToken {
   sub: string;
 }
 
-export interface AuthLogin {
-  email: string;
-  password: string;
-}
