@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductsEntity } from '../../products/entities/products.entity';
 import { OrdersEntity } from './orders.entity';
 
@@ -6,6 +6,8 @@ import { OrdersEntity } from './orders.entity';
 export class OrderProductsEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+  @Column()
+  quantity: number;
   @ManyToOne(() => OrdersEntity, (order) => order.products_includes, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

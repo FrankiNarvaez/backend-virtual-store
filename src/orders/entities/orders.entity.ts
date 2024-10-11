@@ -20,8 +20,14 @@ export class OrdersEntity {
     name: 'bought_at',
   })
   bought_at: Date;
-  @OneToMany(() => OrderProductsEntity, (order) => order.order)
+  @OneToMany(() => OrderProductsEntity, (order) => order.order, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   products_includes: OrderProductsEntity[];
-  @ManyToOne(() => UsersEntity, (user) => user.orders)
+  @ManyToOne(() => UsersEntity, (user) => user.orders, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   user: UsersEntity;
 }
