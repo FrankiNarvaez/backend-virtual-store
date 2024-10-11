@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ROLES } from '../../constants/roles.constants';
+import { OrdersEntity } from '../../orders/entities/orders.entity';
 
 @Entity('users')
 export class UsersEntity {
@@ -17,4 +18,6 @@ export class UsersEntity {
     default: ROLES.USER,
   })
   role: ROLES;
+  @OneToMany(() => OrdersEntity, (order) => order.user)
+  orders: OrdersEntity[];
 }
