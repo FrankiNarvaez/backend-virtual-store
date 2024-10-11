@@ -4,9 +4,6 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  id: string;
-  @IsOptional()
-  @IsString()
   name: string;
   @IsOptional()
   @IsString()

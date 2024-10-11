@@ -4,17 +4,24 @@ import { UsersEntity } from '../entities/users.entity';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserDto } from '../dto/user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { ShoppingCartEntity } from '../../shopping-cart/entities/shopping-cart.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
     private readonly usersRepository: Repository<UsersEntity>,
+    @InjectRepository(ShoppingCartEntity)
+    private readonly shoppingCartRepository: Repository<ShoppingCartEntity>,
   ) {}
 
   public async createUser(body: UserDto): Promise<UsersEntity> {
     try {
-      return await this.usersRepository.save(body);
+      const user: UsersEntity = await this.usersRepository.save(body);
+      const shoppingCart = new ShoppingCartEntity();
+      shoppingCart.user = user;
+      await this.shoppingCartRepository.save(shoppingCart);
+      return user;
     } catch (error) {
       throw new Error(error);
     }
