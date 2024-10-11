@@ -8,6 +8,7 @@ import { ErrorManager } from '../../config/error.manager';
 import { ShoppingCartEntity } from '../../shopping-cart/entities/shopping-cart.entity';
 import { UsersEntity } from '../../users/entities/users.entity';
 import { ProductsEntity } from '../../products/entities/products.entity';
+import { ShoppingCartProductsEntity } from '../../shopping-cart/entities/shopping-cart-products.entity';
 
 @Injectable()
 export class OrdersService {
@@ -22,10 +23,13 @@ export class OrdersService {
     private readonly shoppingCartRepository: Repository<ShoppingCartEntity>,
     @InjectRepository(ProductsEntity)
     private readonly productsRepository: Repository<ProductsEntity>,
+    @InjectRepository(ShoppingCartProductsEntity)
+    private readonly shoppingCartProductsRepository: Repository<ShoppingCartProductsEntity>,
   ) {}
 
   public async createOrder(user_id: string, createOrderDTO: CreateOrderDTO) {
     try {
+      // Search user
       const user = await this.usersRepository.findOne({
         where: { id: user_id },
       });
@@ -36,13 +40,20 @@ export class OrdersService {
         });
       }
 
-      const order = this.ordersRepository.create();
-      order.total = 0;
-      order.bought_at = new Date();
-      order.products_includes = [];
-      order.user = user;
+      // Create order and assign user
+      const order = this.ordersRepository.create({
+        total: 0,
+        bought_at: new Date(),
+        user: user,
+        products_includes: [],
+      });
+
+      // Save order to get the ID
+      await this.ordersRepository.save(order);
 
       let totalPrice = 0;
+
+      // Associate products with the order
       for (const { product_id, quantity } of createOrderDTO.products) {
         const product = await this.productsRepository.findOne({
           where: { id: product_id },
@@ -54,34 +65,50 @@ export class OrdersService {
           });
         }
 
+        // Create the relation between the product and the order
         const orderProduct = this.orderProductsRepository.create({
-          product,
-          order,
-          quantity,
+          product: product,
+          order: order,
+          quantity: quantity,
         });
 
+        // Save the product relationated with the order
+        await this.orderProductsRepository.save(orderProduct);
+
+        // Add the product to the order
         order.products_includes.push(orderProduct);
+
+        // Calculate the total price of the order
         totalPrice += product.price * quantity;
       }
+
+      // Update the total price of the order
       order.total = totalPrice;
 
+      // Save the order with the total price
       await this.ordersRepository.save(order);
-      await this.orderProductsRepository.save(order.products_includes);
 
+      // Remove the products from the shopping cart
       const cart = await this.shoppingCartRepository.findOne({
         where: { user: { id: user_id } },
-        relations: ['products_includes'],
+        relations: ['products_includes', 'products_includes.product'],
       });
 
-      cart.products_includes = cart.products_includes.filter(
-        (cartProduct) =>
-          !createOrderDTO.products.some(
+      if (cart) {
+        const productsToRemove = cart.products_includes.filter(
+          (cartProduct) =>
+          createOrderDTO.products.some(
             (orderProduct) =>
               orderProduct.product_id === cartProduct.product.id,
           ),
-      );
+        );
 
-      await this.shoppingCartRepository.save(cart);
+        // Remove the products from the shopping cart
+        for (const cartProduct of productsToRemove) {
+          await this.shoppingCartProductsRepository.delete(cartProduct.id);
+        }
+      }
+
       return order;
     } catch (error) {
       throw ErrorManager.createError(error.message);
