@@ -18,6 +18,9 @@ export class UsersEntity {
     default: ROLES.USER,
   })
   role: ROLES;
-  @OneToMany(() => OrdersEntity, (order) => order.user)
+  @OneToMany(() => OrdersEntity, (order) => order.user, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   orders: OrdersEntity[];
 }
