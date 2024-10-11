@@ -19,7 +19,7 @@ export class ProductsController {
   public async createProduct(@Body() body: ProductDto) {
     return this.prodcutsService.createProduct(body);
   }
-  @Get('all')
+  @Get('get-products')
   public async getProducts() {
     return this.prodcutsService.getProducts();
   }
