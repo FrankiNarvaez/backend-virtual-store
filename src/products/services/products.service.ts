@@ -4,6 +4,7 @@ import { ProductsEntity } from '../entities/products.entity';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { ProductDto } from '../dto/product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
+import { ErrorManager } from "../../config/error.manager";
 
 @Injectable()
 export class ProductsService {
@@ -22,50 +23,70 @@ export class ProductsService {
 
   public async getProducts(): Promise<ProductsEntity[]> {
     try {
-      return await this.productsRepository.find();
+      const products: ProductsEntity[] = await this.productsRepository.find();
+      if (products.length === 0) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'Products not found',
+        });
+      }
+      return products;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
 
   public async getProductById(id: string): Promise<ProductsEntity> {
     try {
-      return await this.productsRepository
+      const product: ProductsEntity = await this.productsRepository
         .createQueryBuilder('products')
         .where({ id })
         .getOne();
+      if (!product) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'Product not found',
+        });
+      }
+      return product;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
 
   public async updateProduct(
     id: string,
     body: UpdateProductDto,
-  ): Promise<UpdateResult | undefined> {
+  ): Promise<UpdateResult> {
     try {
       const product: UpdateResult = await this.productsRepository.update(
         id,
         body,
       );
       if (product.affected === 0) {
-        return undefined;
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'Product not found',
+        });
       }
       return product;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
 
-  public async deleteProduct(id: string): Promise<DeleteResult | undefined> {
+  public async deleteProduct(id: string): Promise<DeleteResult> {
     try {
       const product: DeleteResult = await this.productsRepository.delete(id);
       if (product.affected === 0) {
-        return undefined;
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'Product not found',
+        });
       }
       return product;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
 }

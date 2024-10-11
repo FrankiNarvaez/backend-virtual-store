@@ -5,6 +5,7 @@ import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserDto } from '../dto/user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { ShoppingCartEntity } from '../../shopping-cart/entities/shopping-cart.entity';
+import { ErrorManager } from '../../config/error.manager';
 
 @Injectable()
 export class UsersService {
@@ -23,49 +24,69 @@ export class UsersService {
       await this.shoppingCartRepository.save(shoppingCart);
       return user;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
   public async getUsers(): Promise<UsersEntity[]> {
     try {
-      return await this.usersRepository.find();
+      const users: UsersEntity[] = await this.usersRepository.find();
+      if (users.length === 0) {
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'No users found',
+        });
+      }
+      return users;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
   public async getUserById(id: string): Promise<UsersEntity> {
     try {
-      return await this.usersRepository
+      const user: UsersEntity = await this.usersRepository
         .createQueryBuilder('users')
         .where({ id })
         .getOne();
+      if (!user) {
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'User not found',
+        });
+      }
+      return user;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
   public async updateUser(
     id: string,
     body: UpdateUserDto,
-  ): Promise<UpdateResult | undefined> {
+  ): Promise<UpdateResult> {
     try {
       const user: UpdateResult = await this.usersRepository.update(id, body);
       if (user.affected === 0) {
-        return undefined;
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'User not found',
+        });
       }
       return user;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
-  public async deleteUser(id: string): Promise<DeleteResult | undefined> {
+  public async deleteUser(id: string): Promise<DeleteResult> {
     try {
       const user: DeleteResult = await this.usersRepository.delete(id);
       if (user.affected === 0) {
-        return undefined;
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'User not found',
+        });
       }
       return user;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
 }

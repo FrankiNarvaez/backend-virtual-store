@@ -6,6 +6,7 @@ import { OrderDto } from '../dto/order.dto';
 import { OrderProductsEntity } from '../entities/order-products.entity';
 import { OrderProductDto } from '../dto/order-product.dto';
 import { ProductsEntity } from '../../products/entities/products.entity';
+import { ErrorManager } from '../../config/error.manager';
 
 @Injectable()
 export class OrdersService {
@@ -34,7 +35,10 @@ export class OrdersService {
           where: { id: orderProductDto.product_id },
         });
         if (!product) {
-          throw new Error(`Producto con ID ${orderProductDto.product_id} no encontrado`);
+          throw new ErrorManager({
+            type: 'NOT_FOUND',
+            message: `Producto con ID ${orderProductDto.product_id} no encontrado`,
+          });
         }
 
         const orderProduct = new OrderProductsEntity();
@@ -46,15 +50,24 @@ export class OrdersService {
 
       return savedOrder;
     } catch (error) {
-      throw new Error(`Error al crear la orden: ${error.message}`);
+      throw ErrorManager.createError(error.message);
     }
   }
 
   public async getOrders(): Promise<OrdersEntity[]> {
     try {
-      return await this.ordersRepository.find({ relations: ['products_includes'] });
+      const orders: OrdersEntity[] = await this.ordersRepository.find({
+        relations: ['products_includes'],
+      });
+      if (orders.length === 0) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'No se encontraron órdenes',
+        });
+      }
+      return orders;
     } catch (error) {
-      throw new Error(`Error al obtener las órdenes: ${error.message}`);
+      throw ErrorManager.createError(error.message);
     }
   }
 
@@ -65,11 +78,14 @@ export class OrdersService {
         relations: ['products_includes'],
       });
       if (!order) {
-        throw new Error(`Orden con ID ${id} no encontrada`);
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: `Orden con ID ${id} no encontrada`,
+        });
       }
       return order;
     } catch (error) {
-      throw new Error(`Error al obtener la orden: ${error.message}`);
+      throw ErrorManager.createError(error.message);
     }
   }
 
@@ -77,10 +93,13 @@ export class OrdersService {
     try {
       const deleteResult = await this.ordersRepository.delete(id);
       if (deleteResult.affected === 0) {
-        throw new Error(`Orden con ID ${id} no encontrada`);
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: `Orden con ID ${id} no encontrada`,
+        });
       }
     } catch (error) {
-      throw new Error(`Error al eliminar la orden: ${error.message}`);
+      throw ErrorManager.createError(error.message);
     }
   }
 }

@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { ShoppingCartProductsEntity } from '../entities/shopping-cart-products.entity';
 import { ProductsEntity } from '../../products/entities/products.entity';
 import { ShoppingCartDto } from '../dto/shopping-cart.dto';
+import { ErrorManager } from '../../config/error.manager';
 
 @Injectable()
 export class ShoppingCartService {
@@ -23,13 +24,19 @@ export class ShoppingCartService {
         relations: ['products_includes'],
       });
       if (!cart) {
-        throw new Error('Cart not found');
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Cart not found',
+        });
       }
       const product = await this.productsRepository.findOne({
         where: { id: body.product_id },
       });
       if (!product) {
-        throw new Error('Product not found');
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Product not found',
+        });
       }
       const productInCart = cart.products_includes.find(
         (product) => product.product.id === body.product_id,
@@ -46,7 +53,7 @@ export class ShoppingCartService {
         await this.shoppingCartProductsRepository.save(newProduct);
       }
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
   public async getCart(user_id: string) {
@@ -56,11 +63,14 @@ export class ShoppingCartService {
         relations: ['products_includes', 'products_includes.product'],
       });
       if (!cart) {
-        throw new Error('Cart not found');
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Cart not found',
+        });
       }
       return cart;
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
   public async removeProductFromCart(user_id: string, product_id: string) {
@@ -70,17 +80,23 @@ export class ShoppingCartService {
         relations: ['products_includes'],
       });
       if (!cart) {
-        throw new Error('Cart not found');
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Cart not found',
+        });
       }
       const productInCart = cart.products_includes.find(
         (product) => product.product.id === product_id,
       );
       if (!productInCart) {
-        throw new Error('Product not found in cart');
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Product not found in cart',
+        });
       }
       await this.shoppingCartProductsRepository.remove(productInCart);
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
   public async updateProductInCart(
@@ -94,18 +110,24 @@ export class ShoppingCartService {
         relations: ['products_includes'],
       });
       if (!cart) {
-        throw new Error('Cart not found');
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Cart not found',
+        });
       }
       const productInCart = cart.products_includes.find(
         (product) => product.product.id === product_id,
       );
       if (!productInCart) {
-        throw new Error('Product not found in cart');
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Product not found in cart',
+        });
       }
       productInCart.quantity = body.quantity;
       await this.shoppingCartProductsRepository.save(productInCart);
     } catch (error) {
-      throw new Error(error);
+      throw ErrorManager.createError(error.message);
     }
   }
 }
