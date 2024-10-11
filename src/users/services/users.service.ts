@@ -7,6 +7,8 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { ShoppingCartEntity } from '../../shopping-cart/entities/shopping-cart.entity';
 import { ErrorManager } from '../../config/error.manager';
 import { LoginUserDto } from '../dto/login-user.dto';
+import * as bcrypt from 'bcrypt';
+import * as process from 'node:process';
 
 @Injectable()
 export class UsersService {
@@ -19,9 +21,12 @@ export class UsersService {
 
   public async createUser(body: UserDto): Promise<UsersEntity> {
     try {
+      body.password = await bcrypt.hash(body.password, +process.env.HASH_SALT);
+
       const user: UsersEntity = await this.usersRepository.save(body);
       const shoppingCart = new ShoppingCartEntity();
       shoppingCart.user = user;
+
       await this.shoppingCartRepository.save(shoppingCart);
       return user;
     } catch (error) {
