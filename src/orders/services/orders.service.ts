@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrdersEntity } from '../entities/orders.entity';
-import { OrderDto } from '../dto/order.dto';
+import { CreateOrderDTO } from '../dto/create-order.dto';
 import { OrderProductsEntity } from '../entities/order-products.entity';
-import { OrderProductDto } from '../dto/order-product.dto';
-import { ProductsEntity } from '../../products/entities/products.entity';
 import { ErrorManager } from '../../config/error.manager';
+import { ShoppingCartEntity } from '../../shopping-cart/entities/shopping-cart.entity';
+import { UsersEntity } from '../../users/entities/users.entity';
+import { ProductsEntity } from '../../products/entities/products.entity';
 
 @Injectable()
 export class OrdersService {
@@ -15,78 +16,118 @@ export class OrdersService {
     private readonly ordersRepository: Repository<OrdersEntity>,
     @InjectRepository(OrderProductsEntity)
     private readonly orderProductsRepository: Repository<OrderProductsEntity>,
+    @InjectRepository(UsersEntity)
+    private readonly usersRepository: Repository<UsersEntity>,
+    @InjectRepository(ShoppingCartEntity)
+    private readonly shoppingCartRepository: Repository<ShoppingCartEntity>,
     @InjectRepository(ProductsEntity)
     private readonly productsRepository: Repository<ProductsEntity>,
   ) {}
 
-  public async createOrder(
-    orderDto: OrderDto,
-    orderProducts: OrderProductDto[],
-  ): Promise<OrdersEntity> {
+  public async createOrder(user_id: string, createOrderDTO: CreateOrderDTO) {
     try {
-      const order = new OrdersEntity();
-      order.total = orderDto.total;
-      order.bought_at = orderDto.bought_at;
+      const user = await this.usersRepository.findOne({
+        where: { id: user_id },
+      });
+      if (!user) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: `Usuario con ID ${user_id} no encontrado`,
+        });
+      }
 
-      const savedOrder = await this.ordersRepository.save(order);
+      const order = this.ordersRepository.create();
+      order.total = 0;
+      order.bought_at = new Date();
+      order.products_includes = [];
+      order.user = user;
 
-      for (const orderProductDto of orderProducts) {
+      let totalPrice = 0;
+      for (const { product_id, quantity } of createOrderDTO.products) {
         const product = await this.productsRepository.findOne({
-          where: { id: orderProductDto.product_id },
+          where: { id: product_id },
         });
         if (!product) {
           throw new ErrorManager({
             type: 'NOT_FOUND',
-            message: `Producto con ID ${orderProductDto.product_id} no encontrado`,
+            message: `Producto con ID ${product_id} no encontrado`,
           });
         }
 
-        const orderProduct = new OrderProductsEntity();
-        orderProduct.order = savedOrder;
-        orderProduct.product = product;
+        const orderProduct = this.orderProductsRepository.create({
+          product,
+          order,
+          quantity,
+        });
 
-        await this.orderProductsRepository.save(orderProduct);
+        order.products_includes.push(orderProduct);
+        totalPrice += product.price * quantity;
       }
+      order.total = totalPrice;
 
-      return savedOrder;
-    } catch (error) {
-      throw ErrorManager.createError(error.message);
-    }
-  }
+      await this.ordersRepository.save(order);
+      await this.orderProductsRepository.save(order.products_includes);
 
-  public async getOrders(): Promise<OrdersEntity[]> {
-    try {
-      const orders: OrdersEntity[] = await this.ordersRepository.find({
+      const cart = await this.shoppingCartRepository.findOne({
+        where: { user: { id: user_id } },
         relations: ['products_includes'],
       });
-      if (orders.length === 0) {
-        throw new ErrorManager({
-          type: 'NOT_FOUND',
-          message: 'No se encontraron órdenes',
-        });
-      }
-      return orders;
-    } catch (error) {
-      throw ErrorManager.createError(error.message);
-    }
-  }
 
-  public async getOrderById(id: string): Promise<OrdersEntity> {
-    try {
-      const order = await this.ordersRepository.findOne({
-        where: { id },
-        relations: ['products_includes'],
-      });
-      if (!order) {
-        throw new ErrorManager({
-          type: 'NOT_FOUND',
-          message: `Orden con ID ${id} no encontrada`,
-        });
-      }
+      cart.products_includes = cart.products_includes.filter(
+        (cartProduct) =>
+          !createOrderDTO.products.some(
+            (orderProduct) =>
+              orderProduct.product_id === cartProduct.product.id,
+          ),
+      );
+
+      await this.shoppingCartRepository.save(cart);
       return order;
     } catch (error) {
       throw ErrorManager.createError(error.message);
     }
+  }
+
+  async getOrdersByUser(user_id: string): Promise<OrdersEntity[]> {
+    return await this.ordersRepository.find({
+      where: { user: { id: user_id } },
+      relations: ['products_includes', 'products_includes.product'],
+    });
+  }
+
+  async getAllOrders(): Promise<OrdersEntity[]> {
+    return await this.ordersRepository.find({
+      relations: ['products_includes', 'products_includes.product', 'user'],
+    });
+  }
+
+  async getOrderByIdForUser(
+    user_id: string,
+    order_id: string,
+  ): Promise<OrdersEntity> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: order_id, user: { id: user_id } },
+      relations: ['products_includes', 'products_includes.product'],
+    });
+
+    if (!order) {
+      throw new Error('Order not found or not owned by the user');
+    }
+
+    return order;
+  }
+
+  async getOrderByIdAsAdmin(order_id: string): Promise<OrdersEntity> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: order_id },
+      relations: ['products_includes', 'products_includes.product', 'user'],
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    return order;
   }
 
   public async deleteOrder(id: string): Promise<void> {
