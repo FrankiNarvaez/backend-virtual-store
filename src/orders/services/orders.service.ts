@@ -32,7 +32,7 @@ export class OrdersService {
       if (!user) {
         throw new ErrorManager({
           type: 'NOT_FOUND',
-          message: `Usuario con ID ${user_id} no encontrado`,
+          message: `User with ID ${user_id} not found`,
         });
       }
 
@@ -50,7 +50,7 @@ export class OrdersService {
         if (!product) {
           throw new ErrorManager({
             type: 'NOT_FOUND',
-            message: `Producto con ID ${product_id} no encontrado`,
+            message: `Product with ID ${product_id} not found`,
           });
         }
 
@@ -111,7 +111,10 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new Error('Order not found or not owned by the user');
+      throw new ErrorManager({
+        type: 'NOT_FOUND',
+        message: `Order with ID ${order_id} not found`,
+      });
     }
 
     return order;
@@ -124,7 +127,10 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new Error('Order not found');
+      throw new ErrorManager({
+        type: 'NOT_FOUND',
+        message: `Order with ID ${order_id} not found`,
+      });
     }
 
     return order;
@@ -136,7 +142,7 @@ export class OrdersService {
       if (deleteResult.affected === 0) {
         throw new ErrorManager({
           type: 'NOT_FOUND',
-          message: `Orden con ID ${id} no encontrada`,
+          message: `Order with ID ${id} not found`,
         });
       }
     } catch (error) {
