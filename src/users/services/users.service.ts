@@ -20,6 +20,14 @@ export class UsersService {
 
   public async createUser(body: UserDto): Promise<UsersEntity> {
     try {
+      const userExists = await this.getUserByEmail(body.email);
+      if (userExists) {
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'User already exists',
+        });
+      }
+
       body.password = await bcrypt.hash(body.password, +process.env.HASH_SALT);
 
       const user: UsersEntity = await this.usersRepository.save(body);
