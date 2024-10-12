@@ -8,6 +8,7 @@ import { ProductsEntity } from '../products/entities/products.entity';
 import { UsersEntity } from '../users/entities/users.entity';
 import { ShoppingCartEntity } from '../shopping-cart/entities/shopping-cart.entity';
 import { ShoppingCartProductsEntity } from '../shopping-cart/entities/shopping-cart-products.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ShoppingCartProductsEntity } from '../shopping-cart/entities/shopping-c
       ShoppingCartEntity,
       ShoppingCartProductsEntity,
     ]),
+    UsersModule,
   ],
   providers: [OrdersService],
   controllers: [OrdersController],
