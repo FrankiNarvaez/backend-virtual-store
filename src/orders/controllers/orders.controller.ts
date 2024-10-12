@@ -11,9 +11,11 @@ import {
 import { OrdersService } from '../services/orders.service';
 import { CreateOrderDTO } from '../dto/create-order.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { RolesGuard } from '../../auth/guards/roles.guard';
 
 @Controller('orders')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
@@ -30,6 +32,7 @@ export class OrdersController {
     return this.ordersService.getOrdersByUser(user_id);
   }
 
+  @Roles('ADMIN')
   @Get('get-orders')
   public async getOrders() {
     return this.ordersService.getAllOrders();

@@ -13,9 +13,11 @@ import { UserDto } from '../dto/user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
 import { PublicAccess } from '../../auth/decorators/public.decorator';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 
 @Controller('users')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -25,6 +27,7 @@ export class UsersController {
     return await this.usersService.createUser(body);
   }
 
+  @Roles('ADMIN')
   @Get('get-users')
   public async getAllUsers() {
     return await this.usersService.getUsers();
