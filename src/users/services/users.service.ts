@@ -20,7 +20,11 @@ export class UsersService {
 
   public async createUser(body: UserDto): Promise<UsersEntity> {
     try {
-      const userExists = await this.getUserByEmail(body.email);
+      const { email } = body;
+      const userExists: UsersEntity = await this.usersRepository
+        .createQueryBuilder('users')
+        .where({ email })
+        .getOne();
       if (userExists) {
         throw new ErrorManager({
           type: 'BAD_REQUEST',
