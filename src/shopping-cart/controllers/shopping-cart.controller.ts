@@ -7,12 +7,15 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ShoppingCartService } from '../services/shopping-cart.service';
 import { ShoppingCartDto } from '../dto/shopping-cart.dto';
 import { UpdateShoppingCartDto } from '../dto/update-shopping-cart.dto';
+import { AuthGuard } from '../../auth/guards/auth.guard';
 
 @Controller('shopping-cart')
+@UseGuards(AuthGuard)
 export class ShoppingCartController {
   constructor(private readonly shoppingCartService: ShoppingCartService) {}
 
@@ -23,10 +26,12 @@ export class ShoppingCartController {
   ) {
     return this.shoppingCartService.addProdcutToCart(user_id, body);
   }
+
   @Get(':user_id')
   public async getCart(@Param('user_id') user_id: string) {
     return this.shoppingCartService.getCart(user_id);
   }
+
   @Delete(':user_id')
   public async deleteCart(
     @Param('user_id') user_id: string,
@@ -34,6 +39,7 @@ export class ShoppingCartController {
   ) {
     return this.shoppingCartService.removeProductFromCart(user_id, product_id);
   }
+
   @Patch(':user_id')
   public async updateCart(
     @Param('user_id') user_id: string,

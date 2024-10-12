@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShoppingCartEntity } from './entities/shopping-cart.entity';
 import { ProductsEntity } from '../products/entities/products.entity';
 import { ShoppingCartProductsEntity } from './entities/shopping-cart-products.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ShoppingCartProductsEntity } from './entities/shopping-cart-products.en
       ShoppingCartProductsEntity,
       ProductsEntity,
     ]),
+    UsersModule,
   ],
   providers: [ShoppingCartService],
   controllers: [ShoppingCartController],
