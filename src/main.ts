@@ -1,6 +1,5 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
 import * as morgan from 'morgan';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 
@@ -19,11 +18,10 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalInterceptors(new ClassSerializerInterceptor(reflector));
 
-  const configService = app.get(ConfigService);
   app.enableCors();
   app.setGlobalPrefix('api');
 
-  await app.listen(configService.get('PORT'));
+  await app.listen(4000);
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
