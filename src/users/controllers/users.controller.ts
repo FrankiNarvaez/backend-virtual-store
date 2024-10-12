@@ -6,15 +6,20 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { UserDto } from '../dto/user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { AuthGuard } from '../../auth/guards/auth.guard';
+import { PublicAccess } from '../../auth/decorators/public.decorator';
 
 @Controller('users')
+@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @PublicAccess()
   @Post('register')
   public async registerUser(@Body() body: UserDto) {
     return await this.usersService.createUser(body);
