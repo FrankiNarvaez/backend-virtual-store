@@ -101,6 +101,8 @@ export class UsersService {
     body: UpdateUserDto,
   ): Promise<UpdateResult> {
     try {
+      body.password = await bcrypt.hash(body.password, +process.env.HASH_SALT);
+
       const user: UpdateResult = await this.usersRepository.update(id, body);
       if (user.affected === 0) {
         throw new ErrorManager({
