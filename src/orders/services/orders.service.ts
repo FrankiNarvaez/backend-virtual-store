@@ -63,6 +63,11 @@ export class OrdersService {
             type: 'NOT_FOUND',
             message: `Product with ID ${product_id} not found`,
           });
+        } else if (product.stock < quantity) {
+          throw new ErrorManager({
+            type: 'BAD_REQUEST',
+            message: `Product with ID ${product_id} has insufficient stock`,
+          });
         }
 
         // Create the relation between the product and the order
@@ -72,7 +77,7 @@ export class OrdersService {
           quantity: quantity,
         });
 
-        // Save the product relationated with the order
+        // Save the product relational with the order
         await this.orderProductsRepository.save(orderProduct);
 
         // Add the product to the order
@@ -80,6 +85,10 @@ export class OrdersService {
 
         // Calculate the total price of the order
         totalPrice += product.price * quantity;
+
+        // Update the stock of the product
+        product.stock -= quantity;
+        await this.productsRepository.save(product);
       }
 
       // Update the total price of the order
@@ -95,8 +104,7 @@ export class OrdersService {
       });
 
       if (cart) {
-        const productsToRemove = cart.products_includes.filter(
-          (cartProduct) =>
+        const productsToRemove = cart.products_includes.filter((cartProduct) =>
           createOrderDTO.products.some(
             (orderProduct) =>
               orderProduct.product_id === cartProduct.product.id,
