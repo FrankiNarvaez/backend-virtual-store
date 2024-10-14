@@ -135,7 +135,7 @@ export class ShoppingCartService {
       }
 
       const productInCart = cart.products_includes.find(
-        (product) => product.product.id === body.product_id,
+        (product) => product.product.id === product_id,
       );
 
       if (!productInCart) {
