@@ -14,6 +14,7 @@ import { UpdateProductDto } from '../dto/update-product.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
+import { PublicAccess } from '../../auth/decorators/public.decorator';
 
 @Controller('products')
 @UseGuards(AuthGuard, RolesGuard)
@@ -26,11 +27,13 @@ export class ProductsController {
     return this.prodcutsService.createProduct(body);
   }
 
+  @PublicAccess()
   @Get('get-products')
   public async getProducts() {
     return this.prodcutsService.getProducts();
   }
 
+  @PublicAccess()
   @Get(':id')
   public async getProductById(@Param('id') id: string) {
     return this.prodcutsService.getProductById(id);
